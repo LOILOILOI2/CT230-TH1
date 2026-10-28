@@ -1,0 +1,36 @@
+package vn.edu.bookstore.legacy.adapter.soap;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
+import vn.edu.bookstore.legacy.adapter.soap.LegacyCatalogException.Kind;
+import vn.edu.bookstore.legacy.adapter.soap.generated.BookCatalogFault;
+import vn.edu.bookstore.legacy.adapter.soap.generated.ErrorDetail;
+
+class LegacyCatalogClientTranslateTest {
+
+    private static BookCatalogFault fault(String code) {
+        ErrorDetail detail = new ErrorDetail();
+        detail.setCode(code);
+        detail.setMessage("m");
+        return new BookCatalogFault("m", detail);
+    }
+
+    @Test
+    void bangDichMaLoi() {
+        assertThat(LegacyCatalogClient.translate(fault("BOOK_NOT_FOUND")).kind())
+                .isEqualTo(Kind.NOT_FOUND);
+
+        assertThat(LegacyCatalogClient.translate(fault("INVALID_ISBN")).kind())
+                .isEqualTo(Kind.INVALID_REQUEST);
+
+        assertThat(LegacyCatalogClient.translate(fault("INVALID_REQUEST")).kind())
+                .isEqualTo(Kind.INVALID_REQUEST);
+
+        assertThat(LegacyCatalogClient.translate(fault("BACKEND_ERROR")).kind())
+                .isEqualTo(Kind.UPSTREAM_ERROR);
+
+        assertThat(LegacyCatalogClient.translate(fault("MA_LA")).kind())
+                .isEqualTo(Kind.UPSTREAM_ERROR);
+    }
+}
